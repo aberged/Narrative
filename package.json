@@ -2,7 +2,7 @@
   "name": "narrative",
   "displayName": "Narrative",
   "description": "",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "publisher": "Potok",
   "engines": {
     "vscode": "^1.94.0"
@@ -17,16 +17,9 @@
   "contributes": {
     "commands": [
       {
-        "command": "narrative.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "narrative.refreshEntry",
         "title": "Refresh",
-        "icon": {
-          "light": "resources/light/refresh.svg",
-          "dark": "resources/dark/refresh.svg"
-        }
+        "icon": "$(sync)"
       },
       {
         "command": "narrative.selectNode",

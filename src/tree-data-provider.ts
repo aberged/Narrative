@@ -1,21 +1,22 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-export class NarrativeProvider implements vscode.TreeDataProvider<Dependency> {
+export class NarrativeProvider implements vscode.TreeDataProvider<NarrativeTreeItem> {
   constructor(private workspaceRoot: string) {}
-
+  //-<!>- convention patterns
   private patterns = [ '-<~>-', '-<!>-', '-<?>-', 'todo://', 'rfc://' ]
 
-  getTreeItem(element: Dependency): vscode.TreeItem {
+  getTreeItem(element: NarrativeTreeItem): vscode.TreeItem {
     return element;
   }
 
-  getChildren(element?: Dependency): Thenable<Dependency[]> {
+  getChildren(element?: NarrativeTreeItem): Thenable<NarrativeTreeItem[]> {
     if (!this.workspaceRoot) {
       vscode.window.showInformationMessage('No narrative in empty workspace');
       return Promise.resolve([]);
     }
     
+    //-<~>- put convention patterns in tree root
     if (vscode.window.activeTextEditor){
       if (!element) {
         return Promise.resolve(
@@ -24,6 +25,7 @@ export class NarrativeProvider implements vscode.TreeDataProvider<Dependency> {
       } else {
         if (vscode.window.activeTextEditor.document) {
           return Promise.resolve(
+            //-<~>- get children for a selected root pattern  
             this.getNaraviteFromActiveFile(element.label)
           );
         } else {
@@ -32,23 +34,24 @@ export class NarrativeProvider implements vscode.TreeDataProvider<Dependency> {
         }
       }
     } else {
+      //-<~>- no narrative if no active text editor
       return Promise.resolve([]);
     }
   }
   /**
    * -<~>- Read narrative from active file
    */
-  private getNaraviteFromActiveFile(pattern: string): Dependency[] {
+  private getNaraviteFromActiveFile(pattern: string): NarrativeTreeItem[] {
     const activeTextEditor = vscode.window.activeTextEditor;
     if (activeTextEditor) {
-      const narratives: Dependency[] = [];
+      const narratives: NarrativeTreeItem[] = [];
       for (let i=0; i<activeTextEditor.document.lineCount; i++) {
         const textLine = activeTextEditor.document.lineAt(i);
         const indexOfNarrative = textLine.text.indexOf(pattern)
         if (indexOfNarrative !== -1) {
           narratives.push(
             this.toDep(
-              textLine.text.substring(indexOfNarrative), 
+              textLine.text.substring(indexOfNarrative).replace(pattern, ''), 
               i, 
               indexOfNarrative, 
               false
@@ -62,8 +65,8 @@ export class NarrativeProvider implements vscode.TreeDataProvider<Dependency> {
     }
   }
   
-  private toDep (narrative: string, lineNum: number, colNum: number, isCategory: boolean): Dependency {
-    const newDep = new Dependency(
+  private toDep (narrative: string, lineNum: number, colNum: number, isCategory: boolean): NarrativeTreeItem {
+    const newDep = new NarrativeTreeItem(
       narrative,
       lineNum,
       colNum,
@@ -80,8 +83,8 @@ export class NarrativeProvider implements vscode.TreeDataProvider<Dependency> {
     return newDep
   }
 
-  private _onDidChangeTreeData: vscode.EventEmitter<Dependency | undefined | null | void> = new vscode.EventEmitter<Dependency | undefined | null | void>();
-  readonly onDidChangeTreeData: vscode.Event<Dependency | undefined | null | void> = this._onDidChangeTreeData.event;
+  private _onDidChangeTreeData: vscode.EventEmitter<NarrativeTreeItem | undefined | null | void> = new vscode.EventEmitter<NarrativeTreeItem | undefined | null | void>();
+  readonly onDidChangeTreeData: vscode.Event<NarrativeTreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
@@ -111,7 +114,7 @@ export class NarrativeProvider implements vscode.TreeDataProvider<Dependency> {
   }
 }
 
-export class Dependency extends vscode.TreeItem {
+export class NarrativeTreeItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly lineNum: number,
